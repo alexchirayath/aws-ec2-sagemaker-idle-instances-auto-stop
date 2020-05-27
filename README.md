@@ -1,0 +1,1 @@
+# ec2-idle-instances-auto-stop
