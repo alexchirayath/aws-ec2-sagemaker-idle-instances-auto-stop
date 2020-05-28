@@ -31,7 +31,7 @@ def createEC2IdleInstanceAlarm(region, instanceId):
         Namespace          = 'AWS/EC2' ,
         Statistic          = 'Average',
         Dimensions         = [{'Name': 'InstanceId', 'Value': instanceId}],
-        Period             = 900,
+        Period             = 3600,
         EvaluationPeriods  = 3,
         Threshold          = 10,
         ComparisonOperator = 'LessThanThreshold',
