@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Example of processing messages on an SQS queue with Lambda
+ 
+Globals:
+  Function:
+    Runtime: python3.8
+    MemorySize: 256
+    Timeout: 900
+
+Resources:
+  EC2IASUpdateCWAlarms:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/updateCWAlarms
+      Handler: lambda_function.handler
+      Policies:
+        - Statement:
+          - Sid: IASCWCRUDPolicy
+            Effect: Allow
+            Action:
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:PutMetricAlarm
+            Resource: "*"
+          - Sid: IASKMSUsagePolicy
+            Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !GetAtt [IASEncryptionKey, Arn]
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt EC2IASQueue.Arn
+            BatchSize: 1
+  EC2IASQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      KmsMasterKeyId: !GetAtt [IASEncryptionKey,Arn]
+      VisibilityTimeout: 900
+  EC2IASGatherInfo:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/gatherEC2Info
+      Handler: lambda_function.handler
+      Policies:
+        - Statement:
+          - Sid: IASEC2DescribePolicy
+            Effect: Allow
+            Action:
+              - ec2:DescribeRegions
+              - ec2:DescribeInstances
+            Resource: "*"
+          - Sid: IASKMSUsagePolicy2
+            Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !GetAtt [IASEncryptionKey, Arn]
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt [EC2IASQueue ,QueueName]
+      Events:
+        PeriodicCheck:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+      Environment:
+        Variables:
+          SQSQueueURL : !Ref EC2IASQueue
+  
+  IASEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+          Version: '2012-10-17'
+          Statement:
+          - Resource: "*"
+            Principal:
+              AWS:
+                Fn::Join:
+                - ''
+                - - 'arn:aws:iam::'
+                  - Ref: AWS::AccountId
+                  - ":root"
+            Effect: Allow
+            Sid: Enable IAM User Permissions
+            Action: kms:*
