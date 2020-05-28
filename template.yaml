@@ -9,7 +9,7 @@ Globals:
     Timeout: 900
 
 Resources:
-  EC2IASUpdateCWAlarms:
+  IIASUpdateCWAlarms:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/updateCWAlarms
@@ -28,19 +28,19 @@ Resources:
               - kms:Encrypt
               - kms:Decrypt
               - kms:GenerateDataKey
-            Resource: !GetAtt [IASEncryptionKey, Arn]
+            Resource: !GetAtt [IIASEncryptionKey, Arn]
       Events:
         SQSEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt EC2IASQueue.Arn
+            Queue: !GetAtt IIASQueue.Arn
             BatchSize: 1
-  EC2IASQueue:
+  IIASQueue:
     Type: AWS::SQS::Queue
     Properties:
-      KmsMasterKeyId: !GetAtt [IASEncryptionKey,Arn]
+      KmsMasterKeyId: !GetAtt [IIASEncryptionKey,Arn]
       VisibilityTimeout: 900
-  EC2IASGatherInfo:
+  IIASGatherInfo:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/gatherEC2Info
@@ -59,9 +59,9 @@ Resources:
               - kms:Encrypt
               - kms:Decrypt
               - kms:GenerateDataKey
-            Resource: !GetAtt [IASEncryptionKey, Arn]
+            Resource: !GetAtt [IIASEncryptionKey, Arn]
         - SQSSendMessagePolicy:
-            QueueName: !GetAtt [EC2IASQueue ,QueueName]
+            QueueName: !GetAtt [IIASQueue ,QueueName]
       Events:
         PeriodicCheck:
           Type: Schedule
@@ -69,9 +69,9 @@ Resources:
             Schedule: rate(1 day)
       Environment:
         Variables:
-          SQSQueueURL : !Ref EC2IASQueue
+          SQSQueueURL : !Ref IIASQueue
   
-  IASEncryptionKey:
+  IIASEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
       EnableKeyRotation: true
