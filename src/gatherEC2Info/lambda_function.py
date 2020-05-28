@@ -2,7 +2,7 @@ import json
 import boto3
 import os
 
-TAG_PREFIX = 'EC2IdleAutoStop'
+TAG_PREFIX = 'IIAS'
 
 
 def getEC2Regions():

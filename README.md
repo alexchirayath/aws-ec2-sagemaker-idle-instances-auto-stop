@@ -45,10 +45,10 @@ To know more about the pricing please visit:
 * https://aws.amazon.com/eventbridge/pricing/
 
 2. How do I opt out certain EC2 Instances out of IIAS management?
-IIAS uses tags to filter out EC2 instances. To opt out a specific EC2 instance, please app the tag ```EC2IdleAutoStopOptOut``` with the value as ```True```. If you want to later include the EC2 instance under IIAS, simply remove the tag and IIAS will pick up the instance in the next scan
+IIAS uses tags to filter out EC2 instances. To opt out a specific EC2 instance, please app the tag ```IIASOptOut``` with the value as ```True```. If you want to later include the EC2 instance under IIAS, simply remove the tag and IIAS will pick up the instance in the next scan
 
 3. How do I opt out an isntance that has already been scanned and has alarms created by IIAS?
-There is no automated solution available at the moment. Please go in the Cloudwatch console and delete the  alarm associated with the EC2 isntance  (EC2IdleAutoStop_\<instance-id>) and add the ```EC2IdleAutoStopOptOut``` tag with the value as ```True``` to the EC2 instance
+There is no automated solution available at the moment. Please go in the Cloudwatch console and delete the  alarm associated with the EC2 isntance  (EC2IdleAutoStop_\<instance-id>) and add the ```IIASOptOut``` tag with the value as ```True``` to the EC2 instance
 
 4. How does IIAS determine which EC2 instances are idle?
 IIAS logic to determines idle instances is inspired by [this](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/UsingAlarmActions.html) AWS documentation.
