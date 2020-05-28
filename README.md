@@ -56,3 +56,13 @@ If the instance is utilizing less than 10% of CPU for 3 hours, IIAS considers th
 
 5. What if my instance is being used and still tagged as idle by IIAS?
 IIAS identifies an EC2 instance as idle based on low CPU utilization. If you have a really large instance (that is not opted-out of IIAS) doing a very small task that consumes very little CPU, IIAS will set up alarms to shut it down. That being said, if you do face this scenario, it is probably an indication that the instance is being underutilized and you could see cost savings by switching to a smaller instance.
+
+
+## Notice
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
