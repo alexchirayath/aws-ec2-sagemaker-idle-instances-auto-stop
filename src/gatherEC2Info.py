@@ -43,11 +43,14 @@ def gatherEC2Info():
     
 def handler(event, context):
     ec2RegionalInfo = gatherEC2Info()
-    print('Sending following ec2 info for CW : {}'.format(ec2RegionalInfo))
-    messageAttributes = {
-        'notificationFor': {
-            'DataType': 'String',
-            'StringValue': SNS_NOTIFICATION_IIAS_EC2
+    if len(ec2RegionalInfo.keys())!=0:
+        print('Sending following ec2 info for CW : {}'.format(ec2RegionalInfo))
+        messageAttributes = {
+            'notificationFor': {
+                'DataType': 'String',
+                'StringValue': SNS_NOTIFICATION_IIAS_EC2
+            }
         }
-    }
-    sendDataToSNS(ec2RegionalInfo,messageAttributes)
+        sendDataToSNS(ec2RegionalInfo,messageAttributes)
+    else:
+        print('No new EC2 instances in IIAS scope')
