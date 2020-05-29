@@ -1,7 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Example of processing messages on an SQS queue with Lambda
- 
+
+Parameters:
+  NotificationEmail:
+    Type: String
+    Description: Email for notifying actions taken on EC2 instance. 
+    AllowedPattern: (?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])
+
 Globals:
   Function:
     Runtime: python3.8
@@ -12,9 +17,14 @@ Resources:
   IIASUpdateCWAlarms:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/updateCWAlarms
-      Handler: lambda_function.handler
+      CodeUri: src/
+      Handler: updateCWAlarms.handler
+      Environment:
+        Variables:
+          SNSTopicArn : !Ref IASSNS
       Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt [IASSNS ,TopicName]
         - Statement:
           - Sid: IASCWCRUDPolicy
             Effect: Allow
@@ -30,21 +40,51 @@ Resources:
               - kms:GenerateDataKey
             Resource: !GetAtt [IIASEncryptionKey, Arn]
       Events:
-        SQSEvent:
-          Type: SQS
+        SNSEvent:
+          Type: SNS
           Properties:
-            Queue: !GetAtt IIASQueue.Arn
-            BatchSize: 1
-  IIASQueue:
-    Type: AWS::SQS::Queue
+            FilterPolicy:
+              notificationFor:
+              - IIAS_EC2
+            Topic: !Ref IASSNS
+
+  IASSNSSageMaker:
+    Type: AWS::SNS::Topic
     Properties:
       KmsMasterKeyId: !GetAtt [IIASEncryptionKey,Arn]
-      VisibilityTimeout: 900
+
+  IASSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: !GetAtt [IIASEncryptionKey,Arn]
+  
+  EmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref NotificationEmail
+      Protocol: email
+      TopicArn: !Ref IASSNS
+      FilterPolicy:
+        notificationFor:
+        - IIAS_EMAIL
+
+  EC2Subscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref NotificationEmail
+      Protocol: email
+      TopicArn: !Ref IASSNS
+      FilterPolicy:
+        notificationType:
+          - email
+
+
+
   IIASGatherInfo:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/gatherEC2Info
-      Handler: lambda_function.handler
+      CodeUri: src/
+      Handler: gatherEC2Info.handler
       Policies:
         - Statement:
           - Sid: IASEC2DescribePolicy
@@ -60,8 +100,8 @@ Resources:
               - kms:Decrypt
               - kms:GenerateDataKey
             Resource: !GetAtt [IIASEncryptionKey, Arn]
-        - SQSSendMessagePolicy:
-            QueueName: !GetAtt [IIASQueue ,QueueName]
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt [IASSNS ,TopicName]
       Events:
         PeriodicCheck:
           Type: Schedule
@@ -69,7 +109,7 @@ Resources:
             Schedule: rate(1 day)
       Environment:
         Variables:
-          SQSQueueURL : !Ref IIASQueue
+          SNSTopicArn : !Ref IASSNS
   
   IIASEncryptionKey:
     Type: AWS::KMS::Key

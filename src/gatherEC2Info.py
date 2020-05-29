@@ -1,14 +1,7 @@
 import json
 import boto3
 import os
-
-TAG_PREFIX = 'IIAS'
-
-
-def getEC2Regions():
-    ec2Client = boto3.client("ec2")
-    regionList = ec2Client.describe_regions()
-    return regionList
+from helper import getEC2Regions, sendDataToSNS, OPTOUT_TAG, SNS_NOTIFICATION_IIAS_EC2
 
 
 def getEC2FilteredRegionalInstanceInfo(region):
@@ -23,7 +16,7 @@ def getEC2FilteredRegionalInstanceInfo(region):
     return excludeOptedOutEC2Instances(allEC2Instances)
 
 def isOutputedOutEC2Instance(instanceInfo):
-    if any( (d['Key'] == '{}OptOut'.format(TAG_PREFIX) and d['Value'] == 'True') for d in instanceInfo['Tags']):
+    if any( (d['Key'] == '{}'.format(OPTOUT_TAG) and d['Value'] == 'True') for d in instanceInfo['Tags']):
         return True
 
     
@@ -38,8 +31,7 @@ def excludeOptedOutEC2Instances(ec2Instances):
     
     
 def gatherEC2Info():
-    regionDictList = getEC2Regions()['Regions']
-    regionList = [regionDict['RegionName'] for regionDict in regionDictList]
+    regionList = getEC2Regions()
     ec2RegionDict = {}
     for region in regionList:
         regionalInstances = getEC2FilteredRegionalInstanceInfo(region)
@@ -47,15 +39,15 @@ def gatherEC2Info():
             ec2RegionDict[region]=regionalInstances
     return ec2RegionDict
 
-def sendDataToSQS(dictMessage):
-    sqsClient = boto3.client('sqs')    
-    sqsQueueURL = os.environ['SQSQueueURL']
-    sqsClient.send_message(
-        QueueUrl=sqsQueueURL,
-        MessageBody=json.dumps(dictMessage)
-        ) 
+
     
 def handler(event, context):
     ec2RegionalInfo = gatherEC2Info()
     print('Sending following ec2 info for CW : {}'.format(ec2RegionalInfo))
-    sendDataToSQS(ec2RegionalInfo)
+    messageAttributes = {
+        'notificationFor': {
+            'DataType': 'String',
+            'StringValue': SNS_NOTIFICATION_IIAS_EC2
+        }
+    }
+    sendDataToSNS(ec2RegionalInfo,messageAttributes)

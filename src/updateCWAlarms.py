@@ -2,8 +2,9 @@ import json
 import boto3
 import os
 
-ALARM_PREFIX = 'EC2IdleAutoStop'
+from helper import ALARM_PREFIX ,sendDataToSNS, SNS_NOTIFICATION_IIAS_EMAIL
 
+actedOnEC2Instances = []
 
 def getRegionalCWEC2Alarms(region):
     cwRegionalClient = boto3.client('cloudwatch', region_name = region)
@@ -41,7 +42,8 @@ def createEC2IdleInstanceAlarm(region, instanceId):
 def createEC2InstanceAlarms(region,ec2InstancesWithNoAlarms):
     for ec2InstanceId in ec2InstancesWithNoAlarms:
         createEC2IdleInstanceAlarm(region, ec2InstanceId)
-        
+        actedOnEC2Instances.append(ec2InstanceId) 
+
     
 def updateEC2RegionalAlarms(region, instanceIdList):
     regionalAlarms = getRegionalCWEC2Alarms(region)
@@ -54,8 +56,20 @@ def updateEC2Alarms(ec2RegionalDict):
         updateEC2RegionalAlarms(region, ec2RegionalDict[region] )
 
 def handler(event, context):
-    print('New Event Received : {}'.format(event))
+    print ('Received ec2RegionalInfo : {}'.format(event))
     for record in event['Records']:
-        ec2RegionalDict = json.loads(record['body'])
+        ec2RegionalDict = json.loads(record['Sns']['Message'])
         print('Checking ec2 instances : {}'.format(ec2RegionalDict))
         updateEC2Alarms(ec2RegionalDict)
+    if len(actedOnEC2Instances)!=0:
+        messageAttributes = {
+            'notificationFor': {
+                'DataType': 'String',
+                'StringValue': SNS_NOTIFICATION_IIAS_EMAIL
+            }
+        }
+        sendDataToSNS({
+            'Description' :  'IIAS has applied idle check alarms for the following EC2 instances:' ,
+            'instanceList' : actedOnEC2Instances
+            },
+        messageAttributes)
