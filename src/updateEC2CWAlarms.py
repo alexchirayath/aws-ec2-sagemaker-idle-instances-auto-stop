@@ -33,7 +33,7 @@ def createEC2IdleInstanceAlarm(region, instanceId):
         Statistic          = 'Average',
         Dimensions         = [{'Name': 'InstanceId', 'Value': instanceId}],
         Period             = 3600,
-        EvaluationPeriods  = 3,
+        EvaluationPeriods  = 2,
         Threshold          = 10,
         ComparisonOperator = 'LessThanThreshold',
         TreatMissingData   = 'notBreaching'

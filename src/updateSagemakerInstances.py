@@ -67,7 +67,7 @@ def handler(event, context):
             }
         }
         sendDataToSNS({
-            'Description' :  'IIAS has stopped and applied idle check alarms for the following Sagemaker notebook instances:' ,
+            'Description' :  'IIAS has stopped and applied idle check lifecycle configs for the following Sagemaker notebook instances:' ,
             'instanceList' : sagemakerInstancesActedOn
             },
         messageAttributes)

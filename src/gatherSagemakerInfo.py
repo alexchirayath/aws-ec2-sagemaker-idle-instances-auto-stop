@@ -2,7 +2,7 @@ import json
 import boto3
 import os
 from helper import getEC2Regions, sendDataToSNS, OPTOUT_TAG, SNS_NOTIFICATION_IIAS_SAGEMAKER
-
+import time
 
 def getSageMakerSupportedRegions():
     ssmClient = boto3.client('ssm')
@@ -40,6 +40,7 @@ def excludeOptedOutSagemakerInstances(sagemakerRegionalClient,sagemakerInstances
         else:
             if instanceInfo['NotebookInstanceStatus']== 'InService':
                 sagemakerRegionalClient.stop_notebook_instance(NotebookInstanceName=instanceInfo['NotebookInstanceName'])
+                time.sleep(30)# Wait for 30 seconds since instances takes time to stop and also to avoid throttle
             filteredSagemakerInstancesList.append(instanceInfo['NotebookInstanceArn'])
     return filteredSagemakerInstancesList
 

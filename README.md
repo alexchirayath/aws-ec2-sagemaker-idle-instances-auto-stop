@@ -2,12 +2,12 @@
 
 ## Overview
 
-In many cases, AWS customers spin up EC2 instances for certain tasks and forget about shutting down the service after use. This can lead to a lot of wastage of EC2 resources which could be used for other tasks.
+In many cases, AWS customers spin up EC2/SageMaker Notebook instances for certain tasks and forget about shutting down the service after use. This can lead to a lot of wastage of EC2 resources which could be used for other tasks.
 The cost of running EC2 instances can also run to upto thousands of dollars for very expensive instances.
 In some use cases, AWS provides the feature to auto shutdown of associated instances. For exampple : AWS Cloud9
-However, for native use of EC2 instances, this auto-stop feature is not available.
-IIAS can be used to auto-stop EC2 instances that are running but are idle for sometime in the AWS account.
-You just need to deploy IIAS in one-region and it takes care of all your EC2 instances!
+However, for native use of EC2/Sagemaker Notebook instances, this auto-stop feature is not available.
+IIAS can be used to auto-stop EC2/SageMaker Notebook instances that are running but are idle for sometime in the AWS account.
+You just need to deploy IIAS in one-region and it takes care of all your EC2/ SageMaker notebook instances!
 
 ## How to Deploy
 
@@ -18,7 +18,17 @@ You just need to deploy IIAS in one-region and it takes care of all your EC2 ins
 ### Installation Steps
 1. Clone the Github repository
 2. Set your AWS credentials using aws configure
-3. In the code directory, run the command ```sam deploy```
+3. In the code directory, run the command ```sam deploy --guided```
+    * Stack Name : <Add an arbitrary name>
+    * AWS Region : <Add the region for deploying the stack> *Note that even though the solution is deployed in one region, IIAS can take care of other regions as well*
+    * ResourcesToBeScanned: Enter one of the following <EC2,SageMaker,EC2&SageMaker>
+    * NotificationEmail: Enter the email where you want updates about what actions IIAS has taken
+    * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekly,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> *Note - During this recurring scan, on SageMaker notebooks, any running instance that is not opted out / has a lifecycle config will be stopped and the IIASLifecycleConfig will be applied.*
+    * ScanTimeHourUTC: Enter the hour (24 hour clock) in UTC Time
+    * ScanTimeMinuteUTC:  Enter the minute in UTC Time
+    * Confirm Changes b
+    efore deploy : Y
+    * SAM CLI IAM role creation: Y
 4. Wait for the Deployment to complete and then you are all set!
 
 
