@@ -39,18 +39,25 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
 ## Architecture
 
 IIAS consists of 
-* 4 Lambdas in the deployed AWS account.
-** GatherEC2Info : This lambda is periodically triggerred (once a day) by a CloudWatch Event Rule to gather information of all the existing EC2 instances across all the regions. It then excludes the opted-out instances(see FAQ for more info on how to opt-out EC2 instances) and sends the data to UpdateCWAlarms Lambda via an SNS 
-** UpdateCWAlarms : This lambda is triggered via the SNS Topic and contains information about the ec2 instances that need to be under IIAS. This lambda creates CloudWatch alarms for ec2 instances that do not have any alarms created by IIAS to track idle state.
-** GatherSageMakerInfo : This lambda is periodically triggerred  by the CloudWatch Event Rule to gather information of all the existing Sagemaker instances across AWS regions. It then excludes the opted-out note book instances (see FAQ for more info on how to opt-out  instances)or instances with Lifecycle Configs already applied. The rest of the notebook instances are then and sends the data to UpdateCWAlarms Lambda via SNS 
+1) 4 Lambdas in the deployed AWS account.
 
-** UpdateSageMakerInstances : This lambda is triggered via the SNS Topic and contains information about the sagemaker instances that need to be under IIAS. This lambda creates and applies Lifecycle config for sagemaker instances .
+   * GatherEC2Info : This lambda is periodically triggerred (once a day) by a CloudWatch Event Rule to gather information of all the existing EC2 instances across all the regions. It then excludes the opted-out instances(see FAQ for more info on how to opt-out EC2 instances) and sends the data to UpdateCWAlarms Lambda via an SNS 
 
-* KMS Key : This encryption key is used to encrypt all resources that interact with data. Eg: Lambda,SQS 
-* EC2IdleAutoStop CloudWatch Alarms
+   * UpdateCWAlarms : This lambda is triggered via the SNS Topic and contains information about the ec2 instances that need to be under IIAS. This lambda creates CloudWatch alarms for ec2 instances that do not have any alarms created by IIAS to track idle state.
+
+   * GatherSageMakerInfo : This lambda is periodically triggerred  by the CloudWatch Event Rule to gather information of all the existing Sagemaker instances across AWS regions. It then excludes the opted-out note book instances (see FAQ for more info on how to opt-out  instances)or instances with Lifecycle Configs already applied. The rest of the notebook instances are then and sends the data to UpdateCWAlarms Lambda via SNS 
+
+   * UpdateSageMakerInstances : This lambda is triggered via the SNS Topic and contains information about the sagemaker instances that need to be under IIAS. This lambda creates and applies Lifecycle config for sagemaker instances .
+
+2) KMS Key : This encryption key is used to encrypt all resources that interact with data. Eg: Lambda,SQS 
+
+3) SNS Topic: This topic is used for commmunication between the lambda as well as to send the email to the user
+
+4) EC2IdleAutoStop CloudWatch Alarms
 The UpdateCWAlarms created alarms for the format EC2IdleAutoStop_\<instance-id> for the ec2 isntances.
 These Alarms check if the EC2 CPU utilization and stops the instance if it has lass than 10% CPU utilization for over 2 hours.
-* SageMaker LifeCycle Config
+
+5) SageMaker LifeCycle Config
 Unlike EC2 instances, it is not possible to set up cloudwatch alarm to measure utilization for Sagemaker notebook instances. This is achieved via LifeCycle Configs on notebooks.
 Lifecycle configs are created in the format IIAS-Sagemaker-Idle-Auto-Stop-Config in each corressponding region where there are sagemaker notebooks under IIAS.
 **Note:** Since lifecycle configs require a notebook instance update, IIAS has to first stop the instance before applying the config
