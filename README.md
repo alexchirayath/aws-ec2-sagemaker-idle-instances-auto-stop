@@ -1,4 +1,4 @@
-# ec2-idle-instances-auto-stop [EC2 IIAS]
+# ec2-sagemaker-idle-instances-auto-stop [EC2 IIAS]
 
 ## Overview
 
@@ -26,8 +26,7 @@ You just need to deploy IIAS in one-region and it takes care of all your EC2/ Sa
     * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekly,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> *Note - During this recurring scan, on SageMaker notebooks, any running instance that is not opted out / has a lifecycle config will be stopped and the IIASLifecycleConfig will be applied.*
     * ScanTimeHourUTC: Enter the hour (24 hour clock) in UTC Time
     * ScanTimeMinuteUTC:  Enter the minute in UTC Time
-    * Confirm Changes b
-    efore deploy : Y
+    * Confirm Changes before deploy : Y
     * SAM CLI IAM role creation: Y
 4. Wait for the Deployment to complete and then you are all set!
 
