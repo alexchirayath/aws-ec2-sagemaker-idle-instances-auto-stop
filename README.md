@@ -7,9 +7,13 @@ The cost of running EC2 instances can also run to upto thousands of dollars for 
 In some use cases, AWS provides the feature to auto shutdown of associated instances. For exampple : AWS Cloud9
 However, for native use of EC2/Sagemaker Notebook instances, this auto-stop feature is not available.
 IIAS can be used to auto-stop EC2/SageMaker Notebook instances that are running but are idle for sometime in the AWS account.
+IIAS deploys CW alarms with actions to stop EC2 instances whereas LifeCycle Configs are used to stop SageMaker instances
 You just need to deploy IIAS in one-region and it takes care of all your EC2/ SageMaker notebook instances!
 
+
 ## How to Deploy
+
+Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagemaker-idle-instances-auto-stop#architecture) to understand how IIAS works before deploying the silution
 
 ### Requirements
  * AWS CLI
@@ -45,7 +49,7 @@ IIAS consists of
 * KMS Key : This encryption key is used to encrypt all resources that interact with data. Eg: Lambda,SQS 
 * EC2IdleAutoStop CloudWatch Alarms
 The UpdateCWAlarms created alarms for the format EC2IdleAutoStop_\<instance-id> for the ec2 isntances.
-These Alarms check if the EC2 CPU utilization and stops the instance if it has lass than 10% CPU utilization for over 3 hours.
+These Alarms check if the EC2 CPU utilization and stops the instance if it has lass than 10% CPU utilization for over 2 hours.
 * SageMaker LifeCycle Config
 Unlike EC2 instances, it is not possible to set up cloudwatch alarm to measure utilization for Sagemaker notebook instances. This is achieved via LifeCycle Configs on notebooks.
 Lifecycle configs are created in the format IIAS-Sagemaker-Idle-Auto-Stop-Config in each corressponding region where there are sagemaker notebooks under IIAS.
