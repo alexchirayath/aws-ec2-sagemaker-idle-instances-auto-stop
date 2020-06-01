@@ -40,8 +40,9 @@ def excludeOptedOutSagemakerInstances(sagemakerRegionalClient,sagemakerInstances
         else:
             if instanceInfo['NotebookInstanceStatus']== 'InService':
                 sagemakerRegionalClient.stop_notebook_instance(NotebookInstanceName=instanceInfo['NotebookInstanceName'])
-                time.sleep(30)# Wait for 30 seconds since instances takes time to stop and also to avoid throttle
+                time.sleep(1)
             filteredSagemakerInstancesList.append(instanceInfo['NotebookInstanceArn'])
+    time.sleep(60) # Wait for 60 seconds since instances takes time to stop and also to avoid throttle 
     return filteredSagemakerInstancesList
 
 def isExcludedSagemakerInstance(instanceInfo): 
