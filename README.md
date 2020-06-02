@@ -49,15 +49,21 @@ IIAS consists of
 
    * UpdateSageMakerInstances : This lambda is triggered via the SNS Topic and contains information about the sagemaker instances that need to be under IIAS. This lambda creates and applies Lifecycle config for sagemaker instances .
 
-2) KMS Key : This encryption key is used to encrypt all resources that interact with data. Eg: Lambda,SQS 
+2) KMS Key 
 
-3) SNS Topic: This topic is used for commmunication between the lambda as well as to send the email to the user
+This encryption key is used to encrypt all resources that interact with data. Eg: Lambda,SQS 
+
+3) SNS Topic
+
+This topic is used for commmunication between the lambda as well as to send the email to the user
 
 4) EC2IdleAutoStop CloudWatch Alarms
+
 The UpdateCWAlarms created alarms for the format EC2IdleAutoStop_\<instance-id> for the ec2 isntances.
 These Alarms check if the EC2 CPU utilization and stops the instance if it has lass than 10% CPU utilization for over 2 hours.
 
 5) SageMaker LifeCycle Config
+
 Unlike EC2 instances, it is not possible to set up cloudwatch alarm to measure utilization for Sagemaker notebook instances. This is achieved via LifeCycle Configs on notebooks.
 Lifecycle configs are created in the format IIAS-Sagemaker-Idle-Auto-Stop-Config in each corressponding region where there are sagemaker notebooks under IIAS.
 **Note:** Since lifecycle configs require a notebook instance update, IIAS has to first stop the instance before applying the config
@@ -74,20 +80,25 @@ To know more about the pricing please visit:
 * https://aws.amazon.com/eventbridge/pricing/
 
 2. How do I opt out certain EC2/SageMaker Instances out of IIAS management?
+
 IIAS uses tags to filter out EC2/SageMaker instances. To opt out a specific EC2 instance, please app the tag ```IIASOptOut``` with the value as ```True```. If you want to later include the EC2/Sagemaker instance under IIAS, simply remove the tag and IIAS will pick up the instance in the next scan
 
 3. How do I opt out an EC2 instance that has already been scanned and has alarms created by IIAS?
+
 There is no automated solution available at the moment. Please go in the Cloudwatch console and delete the  alarm associated with the EC2 isntance  (EC2IdleAutoStop_\<instance-id>) and add the ```IIASOptOut``` tag with the value as ```True``` to the EC2 instance
 
 
 4. How do I opt out an SageMaker instance that has already been scanned and has alarms created by IIAS?
+
 There is no automated solution available at the moment. Please go in the SageMaker console and update the instance to remove the lifecycle config associated with the SageMaker instance  ( and add the ```IIASOptOut``` tag with the value as ```True``` to the notebook instance
 
 4. How does IIAS determine which EC2/Sagemaker Notebook instances are idle?
+
 IIAS logic to determines idle instances is inspired by [this](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/UsingAlarmActions.html) AWS documentation.
 If the instance is utilizing less than 10% of CPU for 2 hours, IIAS considers the instance as idle and shuts it down
 
 5. What if my instance is being used and still tagged as idle by IIAS?
+
 IIAS identifies an EC2/SageMaker instance as idle based on low CPU utilization. If you have a really large instance (that is not opted-out of IIAS) doing a very small task that consumes very little CPU, IIAS will set up alarms to shut it down. That being said, if you do face this scenario, it is probably an indication that the instance is being underutilized and you could see cost savings by switching to a smaller instance.
 
 
