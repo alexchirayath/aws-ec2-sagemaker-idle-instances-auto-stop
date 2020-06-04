@@ -2,10 +2,8 @@
 
 ## Overview
 
-In many cases, AWS customers spin up EC2/SageMaker Notebook instances for certain tasks and forget about shutting down the service after use. This can lead to a lot of wastage of EC2/SageMaker resources which can be used for other tasks.
-The cost of running these instances can be enormous which provides an opportunity for cost-savings by shutting down idle/underutilized instances.
-In some use cases, AWS provides the feature to auto shutdown of associated instances. For example : AWS Cloud9
-However, for native use of EC2/Sagemaker Notebook instances, this auto-stop feature is currently not available.
+In many cases, AWS customers spin up EC2/SageMaker Notebook instances for certain tasks and forget about shutting down the service after use.  This provides an opportunity for cost-savings by stopping idle/underutilized instances.
+In some services, AWS provides the feature to auto shutdown of associated instances. For example : AWS Cloud9
 IIAS (Idle Instance Auto Stop) can be used to auto-stop EC2/SageMaker Notebook instances that are running but are idle in the AWS account.
 IIAS deploys CW alarms with actions to stop EC2 instances whereas LifeCycle Configs are used to stop SageMaker instances
 You just need to deploy IIAS in one-region and it takes care of all your EC2/ SageMaker notebook instances!
@@ -25,20 +23,22 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
 
 
 ### Requirements
- * AWS CLI
- * AWS SAM CLI
+ * AWS CLI . For more information, visit [Installing the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+ * AWS SAM CLI . For more information, visit [Installing AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 
 ### Installation Steps
 1. Clone the Github repository
-2. Set your AWS Account credentials using aws configure
-3. In the code directory, run the command ```sam deploy --guided```
+2. Set your AWS Account credentials. For more information, visit [Setting Up AWS Credentials](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-getting-started-set-up-credentials.html)
+3. In the root directory, run the command ```sam deploy --guided```
     * Stack Name : \<Add an arbitrary name>
     * AWS Region : \<Add the region for deploying the stack> (*Note that even though the solution is deployed in one region, IIAS can take care of other regions as well*)
     * ResourcesToBeScanned: Enter one of the following <EC2,SageMaker,EC2&SageMaker>
     * NotificationEmail: Enter the email where you want updates about what actions IIAS has taken.
-    * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekly,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> *Note - During this recurring scan period, any running SageMaker notebook instance that is not opted out / does not have an existing lifecycle config will be stopped and the IIASLifecycleConfig will be applied.*
-    * ScanTimeHourUTC: Enter the hour (24 hour clock) in UTC Time
-    * ScanTimeMinuteUTC:  Enter the minute in UTC Time
+    * Scanning Period:  The parameters listed below will set the schedule for IIAS to scan your EC2/SageMaker instances and apply the configs/ alarms. 
+    *Note For SageMaker - During this recurring scan period, any running SageMaker notebook instance (that has not been scanned yet by IIAS) that is not opted out / does not have an existing lifecycle config will be stopped and the IIASLifecycleConfig will be applied.Hence, it is recommended to schedule the scanning at a time when you would not be using notebook instances(For example: At night time / weekends*
+      * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekly,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> 
+      * ScanTimeHourUTC: Enter the hour (24 hour clock) in UTC Time
+      * ScanTimeMinuteUTC:  Enter the minute in UTC Time
     * Confirm Changes before deploy : Y
     * SAM CLI IAM role creation: Y
     * Review and Confirm the Changeset created!
@@ -48,7 +48,7 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
 ## Architecture
 
 IIAS consists of 
-1) 4 Lambdas
+1) Lambda Functions
 
    * GatherEC2Info : This lambda is periodically triggerred by a user-configured period (CloudWatch Event Rule). The lambda gathers information of all the existing EC2 instances across all the regions. It then excludes the opted-out instances(see FAQ for more info on how to opt-out EC2 instances) and sends the data to UpdateCWAlarms Lambda via an SNS message
 
@@ -82,11 +82,11 @@ Lifecycle configs are created in the format IIAS-Sagemaker-Idle-Auto-Stop-Config
 1. How much does this solution cost?
 While the exact price of the solution is determined by the number of EC2 instances and what frequency you set for the instance, the price of the solution is included in free tier when run once a week for ~10 EC2 and ~10 SageMaker notebook instances. 
 To know more about the pricing please visit:
-* https://aws.amazon.com/sns/pricing/
+* https://aws.amazon.com/eventbridge/pricing/
 * https://aws.amazon.com/lambda/pricing/
 * https://aws.amazon.com/cloudwatch/pricing/
 * https://aws.amazon.com/kms/pricing/
-* https://aws.amazon.com/eventbridge/pricing/
+* https://aws.amazon.com/sns/pricing/
 
 2. How do I opt out certain EC2/SageMaker Instances out of IIAS management?
 
@@ -110,6 +110,11 @@ If the instance is utilizing less than 10% of CPU for 2 hours, IIAS considers th
 5. What if my instance is being used and still identified as idle by IIAS?
 
 IIAS identifies an EC2/SageMaker instance as idle based on low CPU utilization. If you have a really large instance  doing a very small task that consumes very little CPU, IIAS will apply alarms/configurations to shut it down. If you do fall in this scenario, it is probably an indication that the instance is being underutilized and you could realize cost savings by switching to a smaller instance.
+
+## Other Recommendations
+
+Try using [AWS Trusted Advisor](https://aws.amazon.com/premiumsupport/technology/trusted-advisor/) and [Billing Alerts with Amazon CloudWatch](https://aws.amazon.com/about-aws/whats-new/2012/05/10/announcing-aws-billing-alerts/) to understand AWS Account spending and cost-optimization opportunities
+
 
 ## Notice
 
