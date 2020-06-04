@@ -30,7 +30,7 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
 
 ### Installation Steps
 1. Clone the Github repository
-2. Set your AWS credentials using aws configure
+2. Set your AWS Account credentials using aws configure
 3. In the code directory, run the command ```sam deploy --guided```
     * Stack Name : \<Add an arbitrary name>
     * AWS Region : \<Add the region for deploying the stack> (*Note that even though the solution is deployed in one region, IIAS can take care of other regions as well*)
