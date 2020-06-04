@@ -35,7 +35,7 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
     * ResourcesToBeScanned: Enter one of the following <EC2,SageMaker,EC2&SageMaker>
     * NotificationEmail: Enter the email where you want updates about what actions IIAS has taken.
     * Scanning Period:  The parameters listed below will set the schedule for IIAS to scan your EC2/SageMaker instances and apply the configs/ alarms. 
-    *Note For SageMaker - During this recurring scan period, any running SageMaker notebook instance (which hasn't been scanned yet by IIAS) that is not opted out / does not have an existing lifecycle config will be stopped and the IIASLifecycleConfig will be applied.Hence, it is recommended to schedule the scanning at a time when you would not be using notebook instances(For example: At night time / weekends*
+    *Note For SageMaker - During this recurring scan period, any running SageMaker notebook instance (which hasn't been scanned yet by IIAS) that is not opted out / does not have an existing lifecycle config will be stopped and the IIASLifecycleConfig will be applied.Hence, it is recommended to schedule the scanning at a time when you would not be using notebook instances(For example: At night time / weekends)*
       * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekly,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> 
       * ScanTimeHourUTC: Enter the hour (24 hour clock) in UTC Time
       * ScanTimeMinuteUTC:  Enter the minute in UTC Time
@@ -110,6 +110,11 @@ If the instance is utilizing less than 10% of CPU for 2 hours, IIAS considers th
 5. What if my instance is being used and still identified as idle by IIAS?
 
 IIAS identifies an EC2/SageMaker instance as idle based on low CPU utilization. If you have a really large instance  doing a very small task that consumes very little CPU, IIAS will apply alarms/configurations to shut it down. If you do fall in this scenario, it is probably an indication that the instance is being underutilized and you could realize cost savings by switching to a smaller instance.
+
+5. I have SageMaker instances that already use LifeCycle Configs . How do I use IIAS for these instances? 
+
+Currently IIAS does not update SageMaker notebook instances that already have Lifecycle Configs. This has been intentionally implemented so as to not overwrite/update existing Lifecycle Configs/ SageMaker instance workflows. That being said, you can manually add the "On-start" LifeCycle Config for your SageMaker instance using the script [here](/src/static/sm-on-start.sh)
+
 
 ## Other Recommendations
 

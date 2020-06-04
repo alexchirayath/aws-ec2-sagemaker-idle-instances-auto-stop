@@ -3,7 +3,7 @@
 set -e
 
 # OVERVIEW
-# This script stops a SageMaker notebook once it's idle for more than 1 hour (default time)
+# This script stops a SageMaker notebook once it's idle for more than a specified time (Specified below in IDLE_TIME)
 # You can change the idle time for stop using the environment variable below.
 # If you want the notebook the stop only if no browsers are open, remove the --ignore-connections flag
 #
@@ -14,7 +14,7 @@ set -e
 #
 
 # PARAMETERS
-IDLE_TIME=7200
+IDLE_TIME=7200 #time in seconds
 
 echo "Fetching the autostop script"
 wget https://raw.githubusercontent.com/aws-samples/amazon-sagemaker-notebook-instance-lifecycle-config-samples/master/scripts/auto-stop-idle/autostop.py
