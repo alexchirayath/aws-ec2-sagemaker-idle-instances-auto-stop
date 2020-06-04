@@ -43,7 +43,7 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
     * SAM CLI IAM role creation: Y
     * Review and Confirm the Changeset created!
 4. Wait for the Deployment to complete and then you are all set!
-
+5. Once IIAS is deployed, you will receive an email regarding confirming a subscription to receive updates about actions IIAS has taken in your account. Please confirm the subscription.
 
 ## Architecture
 
