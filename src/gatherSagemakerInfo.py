@@ -15,8 +15,6 @@ def getSageMakerSupportedRegions():
     ec2RegionList = getEC2Regions() # getRegions that are enabled
     return list(set(sagemakerRegionList) & set(ec2RegionList))
      
-
-
 def getSageMakerFilteredRegionalInstanceInfo(region):
     sagemakerRegionalClient = boto3.client('sagemaker', region_name = region)
     paginator = sagemakerRegionalClient.get_paginator('list_notebook_instances')
@@ -40,7 +38,7 @@ def excludeOptedOutSagemakerInstances(sagemakerRegionalClient,sagemakerInstances
         else:
             if instanceInfo['NotebookInstanceStatus']== 'InService':
                 sagemakerRegionalClient.stop_notebook_instance(NotebookInstanceName=instanceInfo['NotebookInstanceName'])
-                time.sleep(1)
+                time.sleep(0.5) # To avoid throttling from AWS APIs
             filteredSagemakerInstancesList.append(instanceInfo['NotebookInstanceArn'])
     time.sleep(60) # Wait for 60 seconds since instances takes time to stop and also to avoid throttle 
     return filteredSagemakerInstancesList
