@@ -47,6 +47,11 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
 
 You will also be able to view the deployed stack in you configured AWS Account and AWS Region in the AWS CloudFormation console.
 
+
+## Clean Up / Delete IIAS
+
+To delete IIAS from your account, please go into the CloudFormation on the AWS Console and delete the stack that has been deployed. This would delete all the stack resources including Lambda functions, SNS Topic, CloudWatch Event Rule and KMS Key. Resources that are created during any previous scans from IIAS such as EC2 CloudWatch Alarms & SageMaker LifeCycle Configs would have to be deleted manually. You may also remove any tags added to the instances for IIAS
+
 ## Architecture
 
 IIAS consists of 
@@ -83,9 +88,6 @@ Unlike EC2 instances, it is not possible to set up cloudwatch alarm to measure u
 Lifecycle configs are created in the format IIAS-Sagemaker-Idle-Auto-Stop-Config in each corressponding region where there are sagemaker notebooks under IIAS.
 **Note:** Since lifecycle configs require a notebook instance update, IIAS has to first stop the instance before applying the config
 
-## Clean Up / Delete IIAS
-
-To delete IIAS from your account, please go into the CloudFormation on the AWS Console and delete the stack that has been deployed. This would delete all the stack resources including Lambda functions, SNS Topic, CloudWatch Event Rule and KMS Key. Resources that are created during any previous scans from IIAS such as EC2 CloudWatch Alarms & SageMaker LifeCycle Configs would have to be deleted manually. You may also remove any tags added to the instances for IIAS
 
 ## FAQ
 
