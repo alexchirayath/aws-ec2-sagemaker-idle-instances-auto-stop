@@ -2,8 +2,9 @@ import json
 import boto3
 import re
 import base64
-from helper import  sendDataToSNS, SNS_NOTIFICATION_IIAS_EMAIL
-
+from helper import  sendDataToSNS, SNS_NOTIFICATION_IIAS_EMAIL, IDLE_TIME_HOUR
+import os
+import math
 
 SAGEMAKER_INSTANCE_ARN_REGEX = '(arn:(aws|aws-cn))(:sagemaker:)([\w\d\-]+):([0-9]+):notebook-instance\/(.+)'
 IIAS_CONFIG_NAME = 'IIAS-Sagemaker-Idle-Auto-Stop-Config'
@@ -21,7 +22,7 @@ def isIIASLifeCycleConfigPresent(region):
 def createIIASLifeCycleConfig(region):
     sagemakerRegionalClient=boto3.client('sagemaker',region_name=region)
     lifecycleConfigContentFile = open("./static/sm-on-start.sh", "r")
-    lifecycleConfigContent = lifecycleConfigContentFile.read()
+    lifecycleConfigContent = lifecycleConfigContentFile.read().replace('IIAS_TIME_SECONDS',str(math.ceil(float(os.environ[IDLE_TIME_HOUR]))*3600))
     sagemakerRegionalClient.create_notebook_instance_lifecycle_config(
         NotebookInstanceLifecycleConfigName=IIAS_CONFIG_NAME,
         OnStart=[

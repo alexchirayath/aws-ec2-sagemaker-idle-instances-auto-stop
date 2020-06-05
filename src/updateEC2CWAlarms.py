@@ -1,8 +1,9 @@
 import json
 import boto3
 import os
+import math
 
-from helper import ALARM_PREFIX ,sendDataToSNS, SNS_NOTIFICATION_IIAS_EMAIL
+from helper import ALARM_PREFIX ,sendDataToSNS, SNS_NOTIFICATION_IIAS_EMAIL,IDLE_TIME_HOUR
 
 actedOnEC2Instances = []
 
@@ -32,8 +33,8 @@ def createEC2IdleInstanceAlarm(region, instanceId):
         Namespace          = 'AWS/EC2' ,
         Statistic          = 'Average',
         Dimensions         = [{'Name': 'InstanceId', 'Value': instanceId}],
-        Period             = 3600,
-        EvaluationPeriods  = 2,
+        Period             = 1800,
+        EvaluationPeriods  = math.ceil(2*float(os.environ[IDLE_TIME_HOUR])),
         Threshold          = 10,
         ComparisonOperator = 'LessThanThreshold',
         TreatMissingData   = 'notBreaching'

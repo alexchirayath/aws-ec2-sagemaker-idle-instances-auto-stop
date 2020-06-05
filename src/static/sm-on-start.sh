@@ -14,7 +14,7 @@ set -e
 #
 
 # PARAMETERS
-IDLE_TIME=7200 #time in seconds
+IDLE_TIME=IIAS_TIME_SECONDS #time in seconds
 
 echo "Fetching the autostop script"
 wget https://raw.githubusercontent.com/aws-samples/amazon-sagemaker-notebook-instance-lifecycle-config-samples/master/scripts/auto-stop-idle/autostop.py

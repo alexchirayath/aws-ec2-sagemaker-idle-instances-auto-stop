@@ -39,6 +39,8 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
       * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekly,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> 
       * ScanTimeHourUTC: Enter the hour (24 hour clock) in UTC Time
       * ScanTimeMinuteUTC:  Enter the minute in UTC Time
+    * EC2IdleHourTimeout:  Enter the no. of idle hours after which you want the EC2 instances to be shut down. Default recommendation = 2
+    * SageMakerIdleHourTimeout: Specify the no. of idle hours after which you want the SageMaker instances to be shut down. Default recommendation = 2
     * Confirm Changes before deploy : Y
     * SAM CLI IAM role creation: Y
     * Review and Confirm the Changeset created!

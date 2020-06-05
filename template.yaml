@@ -24,7 +24,16 @@ Parameters:
     Description: Specify the minute for when IIAS should scan in UTC
     MinValue: 0
     MaxValue: 59
-
+  EC2IdleHourTimeout:
+    Type: Number
+    Description: Specify the no. of idle hours after which you want the EC2 instances to be shut down 
+    MinValue: 1
+    MaxValue: 72
+  SageMakerIdleHourTimeout:
+    Type: Number
+    Description: Specify the no. of idle hours after which you want the SageMaker instances to be shut down 
+    MinValue: 1
+    MaxValue: 72
 Conditions: 
   ScanResourceEC2:
     Fn::Or: [!Equals [ !Ref ResourcesToBeScanned, EC2 ],!Equals [ !Ref ResourcesToBeScanned, EC2&SageMaker ]] 
@@ -68,6 +77,7 @@ Resources:
       Environment:
         Variables:
           SNSTopicArn : !Ref IIASNS
+          IdleTimeHour: !Ref EC2IdleHourTimeout
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt [IIASNS ,TopicName]
@@ -178,6 +188,7 @@ Resources:
       Environment:
         Variables:
           SNSTopicArn : !Ref IIASNS
+          IdleTimeHour: !Ref SageMakerIdleHourTimeout
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt [IIASNS ,TopicName]
