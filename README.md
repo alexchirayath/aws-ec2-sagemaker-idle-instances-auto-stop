@@ -45,6 +45,8 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
 4. Wait for the Deployment to complete and then you are all set!
 5. Once IIAS is deployed, you will receive an email regarding confirming a subscription to receive updates about actions IIAS has taken in your account. Please confirm the subscription.
 
+You will also be able to view the deployed stack in you configured AWS Account and AWS Region in the AWS CloudFormation console.
+
 ## Architecture
 
 IIAS consists of 
