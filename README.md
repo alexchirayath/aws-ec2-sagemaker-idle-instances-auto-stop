@@ -66,16 +66,24 @@ This encryption key is used to encrypt all resources that interact with data. Eg
 
 This topic is used for commmunication between the lambda as well as to send the email to the user
 
-4) EC2IdleAutoStop CloudWatch Alarms
+4) CloudWatch Event Rule
+ 
+ The event rule used to trigger IIAS scans based on the user input for Scanning Period
+
+5) EC2IdleAutoStop CloudWatch Alarms
 
 The UpdateCWAlarms created alarms for the format EC2IdleAutoStop_\<instance-id> for the ec2 isntances.
 These Alarms check if the EC2 CPU utilization and stops the instance if it has lass than 10% CPU utilization for over 2 hours.
 
-5) SageMaker LifeCycle Config
+6) SageMaker LifeCycle Config
 
 Unlike EC2 instances, it is not possible to set up cloudwatch alarm to measure utilization for Sagemaker notebook instances. This is achieved via LifeCycle Configs on notebooks.
 Lifecycle configs are created in the format IIAS-Sagemaker-Idle-Auto-Stop-Config in each corressponding region where there are sagemaker notebooks under IIAS.
 **Note:** Since lifecycle configs require a notebook instance update, IIAS has to first stop the instance before applying the config
+
+## Clean Up / Delete IIAS
+
+To delete IIAS from your account, please go into the CloudFormation on the AWS Console and delete the stack that has been deployed. This would delete all the stack resources including Lambda functions, SNS Topic, CloudWatch Event Rule and KMS Key. Resources that are created during any previous scans from IIAS such as EC2 CloudWatch Alarms & SageMaker LifeCycle Configs would have to be deleted manually. You may also remove any tags added to the instances for IIAS
 
 ## FAQ
 
