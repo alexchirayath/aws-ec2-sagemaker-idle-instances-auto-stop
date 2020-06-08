@@ -25,3 +25,19 @@ def sendDataToSNS(dictMessage, messageAttributes):
         Message=json.dumps(dictMessage),
         MessageAttributes = messageAttributes    
     )
+
+def sendEmailData(message,subject):
+    snsClient = boto3.client('sns')    
+    snsTopicArn = os.environ['SNSTopicArn']
+    
+    snsClient.publish(
+        TargetArn=snsTopicArn,
+        Subject = subject,
+        Message=message,
+        MessageAttributes = {
+            'notificationFor': {
+                'DataType': 'String',
+                'StringValue': SNS_NOTIFICATION_IIAS_EMAIL
+            }
+        }    
+    )

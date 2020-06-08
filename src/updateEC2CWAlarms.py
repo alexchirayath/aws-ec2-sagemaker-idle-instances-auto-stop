@@ -3,7 +3,7 @@ import boto3
 import os
 import math
 
-from helper import ALARM_PREFIX ,sendDataToSNS, SNS_NOTIFICATION_IIAS_EMAIL,IDLE_TIME_HOUR
+from helper import ALARM_PREFIX ,sendEmailData, SNS_NOTIFICATION_IIAS_EMAIL,IDLE_TIME_HOUR
 
 actedOnEC2Instances = []
 
@@ -63,14 +63,6 @@ def handler(event, context):
         print('Checking ec2 instances : {}'.format(ec2RegionalDict))
         updateEC2Alarms(ec2RegionalDict)
     if len(actedOnEC2Instances)!=0:
-        messageAttributes = {
-            'notificationFor': {
-                'DataType': 'String',
-                'StringValue': SNS_NOTIFICATION_IIAS_EMAIL
-            }
-        }
-        sendDataToSNS({
-            'Description' :  'IIAS has applied idle check alarms for the following EC2 instances:' ,
-            'instanceList' : actedOnEC2Instances
-            },
-        messageAttributes)
+        message='IIAS has applied idle check alarms for the following EC2 instances: {}'.format(','.join(actedOnEC2Instances)) 
+        subject = '[IIAS] EC2 Instances Report'
+        sendEmailData(message,subject)

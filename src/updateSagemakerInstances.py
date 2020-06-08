@@ -2,7 +2,7 @@ import json
 import boto3
 import re
 import base64
-from helper import  sendDataToSNS, SNS_NOTIFICATION_IIAS_EMAIL, IDLE_TIME_HOUR
+from helper import  sendEmailData, SNS_NOTIFICATION_IIAS_EMAIL, IDLE_TIME_HOUR
 import os
 import math
 
@@ -61,14 +61,6 @@ def handler(event, context):
     print ('Received sagemakerRegionalInfo : {}'.format(sagemakerRegionalInfo))
     updateSagemakerLifecycleConfigs(sagemakerRegionalInfo)
     if len(sagemakerInstancesActedOn)!=0:
-        messageAttributes = {
-            'notificationFor': {
-                'DataType': 'String',
-                'StringValue': SNS_NOTIFICATION_IIAS_EMAIL
-            }
-        }
-        sendDataToSNS({
-            'Description' :  'IIAS has stopped and applied idle check lifecycle configs for the following Sagemaker notebook instances:' ,
-            'instanceList' : sagemakerInstancesActedOn
-            },
-        messageAttributes)
+        message='IIAS has applied idle check Lifecycle configs (and stopped notebooks) for the following SageMaker  instances: {}. Please ensure these instances have necessary priveleges mentioned as a part of the Pre-Reqs in IIAS Deployment '.format(','.join(sagemakerInstancesActedOn)) 
+        subject = '[IIAS] SageMaker Instances Report'
+        sendEmailData(message,subject)  
