@@ -1,4 +1,4 @@
-# ec2-sagemaker-idle-instances-auto-stop [EC2 IIAS]
+# ec2-sagemaker-idle-instances-auto-stop [EC2 SageMaker IIAS]
 
 ## Overview
 
