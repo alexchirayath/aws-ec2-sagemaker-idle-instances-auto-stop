@@ -11,7 +11,7 @@ You just need to deploy IIAS in one-region and it takes care of all your EC2/ Sa
 
 ## How to Deploy
 
-Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagemaker-idle-instances-auto-stop#architecture) to understand how IIAS works before deploying the silution
+Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagemaker-idle-instances-auto-stop#architecture) and [FAQ](https://github.com/alexchirayath/aws-ec2-sagemaker-idle-instances-auto-stop#faq) to understand how IIAS works before deploying the silution
 
 ### Pre-Requisites / Configuration Setup
  * EC2 : No pre-req steps
@@ -93,26 +93,17 @@ Lifecycle configs are created in the format IIAS-Sagemaker-Idle-Auto-Stop-Config
 
 ## FAQ
 
-1. How much does this solution cost?
-While the exact price of the solution is determined by the number of EC2 instances and what frequency you set for the instance, the price of the solution is included in free tier when run once a week for ~10 EC2 and ~10 SageMaker notebook instances. 
-To know more about the pricing please visit:
-* https://aws.amazon.com/eventbridge/pricing/
-* https://aws.amazon.com/lambda/pricing/
-* https://aws.amazon.com/cloudwatch/pricing/
-* https://aws.amazon.com/kms/pricing/
-* https://aws.amazon.com/sns/pricing/
-
-2. How do I opt out certain EC2/SageMaker Instances out of IIAS management?
+1. How do I opt out certain EC2/SageMaker Instances out of IIAS management?
 
 IIAS uses tags to filter out EC2/SageMaker instances. To opt out a specific EC2 instance, please app the tag ```IIASOptOut``` with the value as ```True```. If you want to later include the EC2/Sagemaker instance under IIAS, simply remove the tag and IIAS will pick up the instance in the next scan.
 Note: Currently IIAS will manage SageMaker instances that do not have an existing LifeCycle Configs.
 
-3. How do I opt out an EC2 instance that has already been scanned and has alarms created by IIAS?
+2. How do I opt out an EC2 instance that has already been scanned and has alarms created by IIAS?
 
 There is no automated solution available at the moment. Please go in the Cloudwatch console and delete the  alarm associated with the EC2 isntance  (EC2IdleAutoStop_\<instance-id>) and add the ```IIASOptOut``` tag with the value as ```True``` to the EC2 instance
 
 
-4. How do I opt out an SageMaker instance that has already been scanned and has alarms created by IIAS?
+3. How do I opt out an SageMaker instance that has already been scanned and has alarms created by IIAS?
 
 There is no automated solution available at the moment. Please go in the SageMaker console and update the instance to remove the IIAS Lifecycle Config associated with the SageMaker instance  ( and add the ```IIASOptOut``` tag with the value as ```True``` to the notebook instance
 
@@ -125,7 +116,7 @@ If the instance is utilizing less than 10% of CPU for 2 hours, IIAS considers th
 
 IIAS identifies an EC2/SageMaker instance as idle based on low CPU utilization. If you have a really large instance  doing a very small task that consumes very little CPU, IIAS will apply alarms/configurations to shut it down. If you do fall in this scenario, it is probably an indication that the instance is being underutilized and you could realize cost savings by switching to a smaller instance.
 
-5. I have SageMaker instances that already use LifeCycle Configs . How do I use IIAS for these instances? 
+6. I have SageMaker instances that already use LifeCycle Configs . How do I use IIAS for these instances? 
 
 Currently IIAS does not update SageMaker notebook instances that already have Lifecycle Configs. This has been intentionally implemented so as to not overwrite/update existing Lifecycle Configs/ SageMaker instance workflows. That being said, you can manually add the "On-start" LifeCycle Config for your SageMaker instance using the script [here](/src/static/sm-on-start.sh)
 
@@ -134,6 +125,16 @@ Currently IIAS does not update SageMaker notebook instances that already have Li
 
 Try using [AWS Trusted Advisor](https://aws.amazon.com/premiumsupport/technology/trusted-advisor/) and [Billing Alerts with Amazon CloudWatch](https://aws.amazon.com/about-aws/whats-new/2012/05/10/announcing-aws-billing-alerts/) to understand AWS Account spending and cost-optimization opportunities
 
+
+## Pricing
+
+While the exact price of the solution is determined by the number of EC2 instances and what frequency you set for the instance, the price of the solution is included in free tier when run once a week for ~10 EC2 and ~10 SageMaker notebook instances. 
+To know more about the pricing please visit:
+* https://aws.amazon.com/eventbridge/pricing/
+* https://aws.amazon.com/lambda/pricing/
+* https://aws.amazon.com/cloudwatch/pricing/
+* https://aws.amazon.com/kms/pricing/
+* https://aws.amazon.com/sns/pricing/
 
 ## Notice
 
