@@ -29,7 +29,7 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
 ### Installation Steps
 1. Clone the Github repository
 2. Set your AWS Account credentials. For more information, visit [Setting Up AWS Credentials](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-getting-started-set-up-credentials.html)
-3. In the root directory, run the command ```sam deploy --guided```
+3. In the root directory, run the command ```sam deploy --guided``` . If you have profiles set up for AWS Credentials, use ```sam deploy --guided --profile <Profile-Name>```
     * Stack Name : \<Add an arbitrary name>
     * AWS Region : \<Add the region for deploying the stack> (*Note that even though the solution is deployed in one region, IIAS can take care of other regions as well*)
     * ResourcesToBeScanned: Enter one of the following <EC2,SageMaker,EC2&SageMaker>
