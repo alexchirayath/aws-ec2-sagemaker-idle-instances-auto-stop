@@ -109,8 +109,9 @@ There is no automated solution available at the moment. Please go in the SageMak
 
 4. How does IIAS determine which EC2/Sagemaker Notebook instances are idle?
 
-IIAS logic to determines idle instances is inspired by [this](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/UsingAlarmActions.html) AWS documentation.
+IIAS logic to determines idle EC2 instances is inspired by [this](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/UsingAlarmActions.html) AWS documentation.
 If the instance is utilizing less than 10% of CPU for 2 hours, IIAS considers the instance as idle and shuts it down
+For SageMaker instnaces, idle isntances are idetinified using data from  the [Jupyter notebook](https://github.com/jupyter/notebook/issues/4634)
 
 5. What if my instance is being used and still identified as idle by IIAS?
 
