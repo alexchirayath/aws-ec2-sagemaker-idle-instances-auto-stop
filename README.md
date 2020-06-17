@@ -36,7 +36,7 @@ Please review the [Architecture](https://github.com/alexchirayath/aws-ec2-sagema
     * NotificationEmail: Enter the email where you want updates about what actions IIAS has taken.
     * Scanning Period:  The parameters listed below will set the schedule for IIAS to scan your EC2/SageMaker instances and apply the configs/ alarms. 
     *Note For SageMaker - During this recurring scan period, any running SageMaker notebook instance (which hasn't been scanned yet by IIAS) that is not opted out / does not have an existing lifecycle config will be stopped and the IIASLifecycleConfig will be applied.Hence, it is recommended to schedule the scanning at a time when you would not be using notebook instances(For example: At night time / weekends)*
-      * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekly,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> 
+      * ScanReccurrencePeriod: Enter one of the following <Daily,Weekend,Weekday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday> 
       * ScanTimeHourUTC: Enter the hour (24 hour clock) in UTC Time
       * ScanTimeMinuteUTC:  Enter the minute in UTC Time
     * Confirm Changes before deploy : Y
