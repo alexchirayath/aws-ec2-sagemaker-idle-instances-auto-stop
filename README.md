@@ -6,7 +6,7 @@ In many cases, AWS customers spin up EC2/SageMaker Notebook instances for certai
 In some services, AWS provides the feature to auto shutdown of associated instances. For example : AWS Cloud9
 IIAS (Idle Instance Auto Stop) can be used to auto-stop EC2/SageMaker Notebook instances that are running but are idle in the AWS account.
 IIAS deploys CW alarms with actions to stop EC2 instances whereas LifeCycle Configs are used to stop SageMaker instances
-You just need to deploy IIAS in one-region and it takes care of all your EC2/ SageMaker notebook instances!
+You just need to deploy IIAS in one-region and it takes care of all your EC2/ SageMaker notebook instances! You can also exclude certain instances from being auto-stopped using the opt-out feature
 
 
 ## How to Deploy
