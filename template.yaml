@@ -24,16 +24,7 @@ Parameters:
     Description: Specify the minute for when IIAS should scan in UTC
     MinValue: 0
     MaxValue: 59
-  EC2IdleHourTimeout:
-    Type: Number
-    Description: Specify the no. of idle hours after which you want the EC2 instances to be shut down 
-    MinValue: 1
-    MaxValue: 72
-  SageMakerIdleHourTimeout:
-    Type: Number
-    Description: Specify the no. of idle hours after which you want the SageMaker instances to be shut down 
-    MinValue: 1
-    MaxValue: 72
+
 Conditions: 
   ScanResourceEC2:
     Fn::Or: [!Equals [ !Ref ResourcesToBeScanned, EC2 ],!Equals [ !Ref ResourcesToBeScanned, EC2&SageMaker ]] 
@@ -69,6 +60,88 @@ Globals:
     ReservedConcurrentExecutions: 1
 
 Resources:
+
+
+  IIASEC2GatherInfo:
+    Condition: ScanResourceEC2
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: gatherEC2Info.handler
+      Policies:
+        - Statement:
+          - Sid: IASEC2DescribePolicy
+            Effect: Allow
+            Action:
+              - ec2:DescribeRegions
+              - ec2:DescribeInstances
+            Resource: "*"
+          - Sid: IASKMSUsagePolicy2
+            Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !GetAtt [IIASEncryptionKey, Arn]
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt [IIAServiceSNS ,TopicName]
+      Events:
+        PeriodicCheck:
+          Type: Schedule
+          Properties:
+            Schedule: 
+              !Join
+                - ""
+                - - "cron("
+                  - !Ref ScanTimeMinuteUTC
+                  - " "
+                  - !Ref ScanTimeHourUTC
+                  - " "
+                  - "?"
+                  - " "
+                  - "*"
+                  - " "
+                  - !FindInMap [ReccurrenceToCron, !Ref ScanReccurrencePeriod, Value]
+                  - " "
+                  - "*"
+                  - ")"
+      Environment:
+        Variables:
+          SNSServiceTopicArn : !Ref IIAServiceSNS
+  
+  IIASEC2GatherInfoErrorAlert:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription:
+        Fn::Join:
+           - ""
+           - -  IIASEC2GatherInfo Lambda Error for for AWS Account - 
+             - Ref: AWS::AccountId
+             - in region
+             - Ref: AWS::Region
+             - . Please look into AWS account to learn more. You can also report issues on the GitHub repository. 
+      AlarmName:
+        Fn::Join:
+          - " "
+          - - IIASEC2GatherInfo
+            - "Error Alert:"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: AWS::Region
+      AlarmActions:
+        - !Ref IIASEmailSNS
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value:
+            Ref: IIASEC2GatherInfo
+      Namespace: AWS/Lambda
+      Period: 1800
+      Statistic: Sum
+      Threshold: 1
+
   IIASUpdateEC2CWAlarms:
     Condition: ScanResourceEC2
     Type: AWS::Serverless::Function
@@ -77,11 +150,11 @@ Resources:
       Handler: updateEC2CWAlarms.handler
       Environment:
         Variables:
-          SNSTopicArn : !Ref IIASNS
-          IdleTimeHour: !Ref EC2IdleHourTimeout
+          SNSEmailTopicArn: !Ref IIASEmailSNS
+          IdleTimeHour: 2 #!Ref EC2IdleHourTimeout
       Policies:
         - SNSPublishMessagePolicy:
-            TopicName: !GetAtt [IIASNS ,TopicName]
+            TopicName: !GetAtt [IIASEmailSNS ,TopicName]
         - Statement:
           - Sid: IASCWCRUDPolicy
             Effect: Allow
@@ -89,6 +162,14 @@ Resources:
               - cloudwatch:DescribeAlarms
               - cloudwatch:PutMetricAlarm
             Resource: "*"
+          - Sid: IASIAMServicePolicy
+            Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource: "*"
+            Condition:
+              StringLike:
+                iam:AWSServiceName: events.amazonaws.com
           - Sid: IASKMSUsagePolicy
             Effect: Allow
             Action:
@@ -103,10 +184,48 @@ Resources:
             FilterPolicy:
               notificationFor:
               - IIAS_EC2
-            Topic: !Ref IIASNS
+            Topic: !Ref IIAServiceSNS
+
+  IIASUpdateEC2CWAlarmsErrorAlert:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription:
+        Fn::Join:
+           - ""
+           - -  IIASUpdateEC2CWAlarms Lambda Error for for AWS Account - 
+             - Ref: AWS::AccountId
+             - in region
+             - Ref: AWS::Region
+             - . Please look into AWS account to learn more. You can also report issues on the GitHub repository. 
+      AlarmName:
+        Fn::Join:
+          - " "
+          - - IIASUpdateEC2CWAlarms
+            - "Error Alert:"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: AWS::Region
+      AlarmActions:
+        - !Ref IIASEmailSNS
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value:
+            Ref: IIASUpdateEC2CWAlarms
+      Namespace: AWS/Lambda
+      Period: 1800
+      Statistic: Sum
+      Threshold: 1
 
 
-  IIASNS:
+  IIAServiceSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: !GetAtt [IIASEncryptionKey,Arn]
+
+  IIASEmailSNS:
     Type: AWS::SNS::Topic
     Properties:
       KmsMasterKeyId: !GetAtt [IIASEncryptionKey,Arn]
@@ -116,10 +235,7 @@ Resources:
     Properties:
       Endpoint: !Ref NotificationEmail
       Protocol: email
-      TopicArn: !Ref IIASNS
-      FilterPolicy:
-        notificationFor:
-        - IIAS_EMAIL
+      TopicArn: !Ref IIASEmailSNS
 
   IIASSagemakerGatherInfo:
     Condition: ScanResourceSageMaker
@@ -155,7 +271,7 @@ Resources:
               - kms:GenerateDataKey
             Resource: !GetAtt [IIASEncryptionKey, Arn]
         - SNSPublishMessagePolicy:
-            TopicName: !GetAtt [IIASNS ,TopicName]
+            TopicName: !GetAtt [IIAServiceSNS ,TopicName]
       Events:
         PeriodicCheck:
           Type: Schedule
@@ -178,8 +294,42 @@ Resources:
                   - ")"
       Environment:
         Variables:
-          SNSTopicArn : !Ref IIASNS
+          SNSServiceTopicArn : !Ref IIAServiceSNS
 
+
+  IIASSagemakerGatherInfoErrorAlert:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription:
+        Fn::Join:
+           - ""
+           - -  IIASSagemakerGatherInfo Lambda Error for for AWS Account - 
+             - Ref: AWS::AccountId
+             - in region
+             - Ref: AWS::Region
+             - . Please look into AWS account to learn more. You can also report issues on the GitHub repository. 
+      AlarmName:
+        Fn::Join:
+          - " "
+          - - IIASSagemakerGatherInfo
+            - "Error Alert:"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: AWS::Region
+      AlarmActions:
+        - !Ref IIASEmailSNS
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value:
+            Ref: IIASSagemakerGatherInfo
+      Namespace: AWS/Lambda
+      Period: 1800
+      Statistic: Sum
+      Threshold: 1
+      
   IIASUpdateSagemakerInstances:
     Condition: ScanResourceSageMaker
     Type: AWS::Serverless::Function
@@ -188,11 +338,11 @@ Resources:
       Handler: updateSagemakerInstances.handler
       Environment:
         Variables:
-          SNSTopicArn : !Ref IIASNS
-          IdleTimeHour: !Ref SageMakerIdleHourTimeout
+          SNSEmailTopicArn: !Ref IIASEmailSNS
+          IdleTimeHour: 2 #!Ref SageMakerIdleHourTimeout
       Policies:
         - SNSPublishMessagePolicy:
-            TopicName: !GetAtt [IIASNS ,TopicName]
+            TopicName: !GetAtt [IIASEmailSNS ,TopicName]
         - Statement:
           - Sid: IASKMSUsagePolicy4
             Effect: Allow
@@ -216,55 +366,43 @@ Resources:
             FilterPolicy:
               notificationFor:
               - IIAS_SAGEMAKER
-            Topic: !Ref IIASNS
-
-  IIASEC2GatherInfo:
-    Condition: ScanResourceEC2
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/
-      Handler: gatherEC2Info.handler
-      Policies:
-        - Statement:
-          - Sid: IASEC2DescribePolicy
-            Effect: Allow
-            Action:
-              - ec2:DescribeRegions
-              - ec2:DescribeInstances
-            Resource: "*"
-          - Sid: IASKMSUsagePolicy2
-            Effect: Allow
-            Action:
-              - kms:Encrypt
-              - kms:Decrypt
-              - kms:GenerateDataKey
-            Resource: !GetAtt [IIASEncryptionKey, Arn]
-        - SNSPublishMessagePolicy:
-            TopicName: !GetAtt [IIASNS ,TopicName]
-      Events:
-        PeriodicCheck:
-          Type: Schedule
-          Properties:
-            Schedule: 
-              !Join
-                - ""
-                - - "cron("
-                  - !Ref ScanTimeMinuteUTC
-                  - " "
-                  - !Ref ScanTimeHourUTC
-                  - " "
-                  - "?"
-                  - " "
-                  - "*"
-                  - " "
-                  - !FindInMap [ReccurrenceToCron, !Ref ScanReccurrencePeriod, Value]
-                  - " "
-                  - "*"
-                  - ")"
-      Environment:
-        Variables:
-          SNSTopicArn : !Ref IIASNS
+            Topic: !Ref IIAServiceSNS
   
+  IIASUpdateSagemakerInstancesErrorAlert:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription:
+        Fn::Join:
+           - ""
+           - -  IIASUpdateSagemakerInstances Lambda Error for for AWS Account - 
+             - Ref: AWS::AccountId
+             - in region
+             - Ref: AWS::Region
+             - . Please look into AWS account to learn more. You can also report issues on the GitHub repository. 
+      AlarmName:
+        Fn::Join:
+          - " "
+          - - IIASUpdateSagemakerInstances
+            - "Error Alert:"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: AWS::Region
+      AlarmActions:
+        - !Ref IIASEmailSNS
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value:
+            Ref: IIASUpdateSagemakerInstances
+      Namespace: AWS/Lambda
+      Period: 1800
+      Statistic: Sum
+      Threshold: 1
+
+
+
   IIASEncryptionKey:
     Type: AWS::KMS::Key
     Properties:

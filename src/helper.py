@@ -19,7 +19,7 @@ def getEC2Regions():
 
 def sendDataToSNS(dictMessage, messageAttributes):
     snsClient = boto3.client('sns')    
-    snsTopicArn = os.environ['SNSTopicArn']
+    snsTopicArn = os.environ['SNSServiceTopicArn']
     snsClient.publish(
         TargetArn=snsTopicArn,
         Message=json.dumps(dictMessage),
@@ -28,7 +28,7 @@ def sendDataToSNS(dictMessage, messageAttributes):
 
 def sendEmailData(message,subject):
     snsClient = boto3.client('sns')    
-    snsTopicArn = os.environ['SNSTopicArn']
+    snsTopicArn = os.environ['SNSEmailTopicArn']
     
     snsClient.publish(
         TargetArn=snsTopicArn,
